@@ -22,7 +22,7 @@ const App = () => {
   const [playingAs, setPlayingAs] = useState(null);
 
   const checkWinner = () => {
-    // row dynamic
+    // Проверка строк
     for (let row = 0; row < gameState.length; row++) {
       if (
         gameState[row][0] === gameState[row][1] &&
@@ -33,7 +33,7 @@ const App = () => {
       }
     }
 
-    // column dynamic
+    // Проверка столбцов
     for (let col = 0; col < gameState.length; col++) {
       if (
         gameState[0][col] === gameState[1][col] &&
@@ -44,6 +44,7 @@ const App = () => {
       }
     }
 
+    // Проверка диагоналей
     if (
       gameState[0][0] === gameState[1][1] &&
       gameState[1][1] === gameState[2][2]
@@ -58,6 +59,7 @@ const App = () => {
       return gameState[0][2];
     }
 
+    // Проверка на ничью
     const isDrawMatch = gameState.flat().every((e) => {
       if (e === "circle" || e === "cross") return true;
     });
@@ -76,12 +78,12 @@ const App = () => {
 
   const takePlayerName = async () => {
     const result = await Swal.fire({
-      title: "Enter your name",
+      title: "Введите ваше имя",
       input: "text",
       showCancelButton: true,
       inputValidator: (value) => {
         if (!value) {
-          return "You need to write something!";
+          return "Необходимо ввести имя!";
         }
       },
     });
@@ -143,7 +145,7 @@ const App = () => {
     return (
       <div className="main-div">
         <button onClick={playOnlineClick} className="playOnline">
-          Play Online
+          Играть онлайн
         </button>
       </div>
     );
@@ -152,7 +154,7 @@ const App = () => {
   if (playOnline && !opponentName) {
     return (
       <div className="waiting">
-        <p>Waiting for opponent</p>
+        <p>Ожидайте игрока</p>
       </div>
     );
   }
@@ -176,7 +178,7 @@ const App = () => {
         </div>
       </div>
       <div>
-        <h1 className="game-heading water-background">Tic Tac Toe</h1>
+        <h1 className="game-heading water-background">Крестики-нолики</h1>
         <div className="square-wrapper">
           {gameState.map((arr, rowIndex) =>
             arr.map((e, colIndex) => {
@@ -202,21 +204,20 @@ const App = () => {
           finishedState !== "opponentLeftMatch" &&
           finishedState !== "draw" && (
             <h3 className="finished-state">
-              {finishedState === playingAs ? "You " : finishedState} won the
-              game
+              {finishedState === playingAs ? "Вы " : finishedState} выиграли игру
             </h3>
           )}
         {finishedState &&
           finishedState !== "opponentLeftMatch" &&
           finishedState === "draw" && (
-            <h3 className="finished-state">It's a Draw</h3>
+            <h3 className="finished-state">Ничья</h3>
           )}
       </div>
       {!finishedState && opponentName && (
-        <h2>You are playing against {opponentName}</h2>
+        <h2>Вы играете против {opponentName}</h2>
       )}
       {finishedState && finishedState === "opponentLeftMatch" && (
-        <h2>You won the match, Opponent has left</h2>
+        <h2>Вы выиграли, противник покинул игру</h2>
       )}
     </div>
   );
