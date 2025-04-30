@@ -49,6 +49,7 @@ const App = () => {
       gameState[0][0] === gameState[1][1] &&
       gameState[1][1] === gameState[2][2]
     ) {
+      setFinishedArrayState([0, 4, 8]);
       return gameState[0][0];
     }
 
@@ -56,12 +57,14 @@ const App = () => {
       gameState[0][2] === gameState[1][1] &&
       gameState[1][1] === gameState[2][0]
     ) {
+      setFinishedArrayState([2, 4, 6]);
       return gameState[0][2];
     }
 
     // Проверка на ничью
     const isDrawMatch = gameState.flat().every((e) => {
       if (e === "circle" || e === "cross") return true;
+      return false;
     });
 
     if (isDrawMatch) return "draw";
@@ -74,6 +77,7 @@ const App = () => {
     if (winner) {
       setFinishetState(winner);
     }
+    // eslint-disable-next-line
   }, [gameState]);
 
   const takePlayerName = async () => {
@@ -91,35 +95,56 @@ const App = () => {
     return result;
   };
 
-  socket?.on("opponentLeftMatch", () => {
-    setFinishetState("opponentLeftMatch");
-  });
+  // Подписки на события сокета в useEffect!
+  useEffect(() => {
+    if (!socket) return;
 
-  socket?.on("playerMoveFromServer", (data) => {
-    const id = data.state.id;
-    setGameState((prevState) => {
-      let newState = [...prevState];
-      const rowIndex = Math.floor(id / 3);
-      const colIndex = id % 3;
-      newState[rowIndex][colIndex] = data.state.sign;
-      return newState;
-    });
-    setCurrentPlayer(data.state.sign === "circle" ? "cross" : "circle");
-  });
+    const handleOpponentLeft = () => setFinishetState("opponentLeftMatch");
+    const handleMoveFromServer = (data) => {
+      const id = data.state.id;
+      setGameState((prevState) => {
+        // Копируем двумерный массив глубоко!
+        let newState = prevState.map((row) => [...row]);
+        const rowIndex = Math.floor(id / 3);
+        const colIndex = id % 3;
+        newState[rowIndex][colIndex] = data.state.sign;
+        return newState;
+      });
+      setCurrentPlayer(data.state.sign === "circle" ? "cross" : "circle");
+    };
+    const handleConnect = () => setPlayOnline(true);
+    const handleOpponentNotFound = () => setOpponentName(false);
+    const handleOpponentFound = (data) => {
+      setPlayingAs(data.playingAs);
+      setOpponentName(data.opponentName);
+      // Сброс состояния игры при начале матча
+      setGameState([
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
+      ]);
+      setFinishetState(false);
+      setFinishedArrayState([]);
+      setCurrentPlayer("circle");
+    };
 
-  socket?.on("connect", function () {
-    setPlayOnline(true);
-  });
+    socket.on("opponentLeftMatch", handleOpponentLeft);
+    socket.on("playerMoveFromServer", handleMoveFromServer);
+    socket.on("connect", handleConnect);
+    socket.on("OpponentNotFound", handleOpponentNotFound);
+    socket.on("OpponentFound", handleOpponentFound);
 
-  socket?.on("OpponentNotFound", function () {
-    setOpponentName(false);
-  });
+    // Очистка подписок
+    return () => {
+      socket.off("opponentLeftMatch", handleOpponentLeft);
+      socket.off("playerMoveFromServer", handleMoveFromServer);
+      socket.off("connect", handleConnect);
+      socket.off("OpponentNotFound", handleOpponentNotFound);
+      socket.off("OpponentFound", handleOpponentFound);
+    };
+  }, [socket]);
 
-  socket?.on("OpponentFound", function (data) {
-    setPlayingAs(data.playingAs);
-    setOpponentName(data.opponentName);
-  });
-
+  // Главное отличие для деплоя: динамический адрес сокета!
   async function playOnlineClick() {
     const result = await takePlayerName();
 
@@ -130,11 +155,12 @@ const App = () => {
     const username = result.value;
     setPlayerName(username);
 
-    const newSocket = io("http://localhost:3000", {
+    // Универсально для локалки и продакшена:
+    const newSocket = io({
       autoConnect: true,
     });
 
-    newSocket?.emit("request_to_play", {
+    newSocket.emit("request_to_play", {
       playerName: username,
     });
 
