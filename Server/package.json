@@ -2,13 +2,12 @@
   "name": "tic-tac-toe-server",
   "version": "1.0.0",
   "dependencies": {
-    "express": "^5.1.0",
-    "http": "^0.0.1-security",
-    "nodemon": "^3.0.2",
-    "socket.io": "^4.7.3"
+    "express": "^4.21.2",
+    "path-to-regexp": "^6.3.0",
+    "socket.io": "^4.8.1"
   },
   "scripts": {
-  "start": "node server.js",
-  "build": "npm install"
+    "start": "node server.js",
+    "build": "npm install"
   }
 }
