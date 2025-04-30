@@ -8,7 +8,7 @@
     "socket.io": "^4.7.3"
   },
   "scripts": {
-    "start": "node server.js",
-    "build": "npm install && cd client && npm install && npm run build"
+  "start": "node server.js",
+  "build": "npm install"
   }
 }

@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: server
+    runtime: node
+    root: Server
+    buildCommand: npm install
+    startCommand: npm start
+
+  - type: web
+    name: client
+    runtime: node
+    root: Client  # предполагая, что клиент в папке Client
+    buildCommand: npm install && npm run build
+    startCommand: serve -s build
+    env: static
