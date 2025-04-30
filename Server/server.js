@@ -1,9 +1,25 @@
+const express = require('express');
+const path = require('path');
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 
-const httpServer = createServer();
+const app = express();
+
+// === Раздача статики собранного фронта ===
+app.use(express.static(path.join(__dirname, '../Client/dist')));
+
+// Для всех других запросов – index.html (SPA)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../Client/dist/index.html'));
+});
+
+const httpServer = createServer(app);
+
 const io = new Server(httpServer, {
-  cors: "http://localhost:5174/",
+  cors: {
+    origin: "*",    // <-- для деплоя на Render (разрешить всем)
+    methods: ["GET", "POST"]
+  },
 });
 
 const allUsers = {};
@@ -82,4 +98,8 @@ io.on("connection", (socket) => {
   });
 });
 
-httpServer.listen(3000);
+
+const PORT = process.env.PORT || 3000;
+httpServer.listen(PORT, () => {
+  console.log(`Server started on port ${PORT}`);
+});
